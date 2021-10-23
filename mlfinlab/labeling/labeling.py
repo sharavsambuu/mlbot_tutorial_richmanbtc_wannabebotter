@@ -9,7 +9,7 @@ import pandas as pd
 from mlfinlab.util.multiprocess import mp_pandas_obj
 
 
-# Snippet 3.2, page 45, Triple Barrier Labeling Method
+# Snippet 3.2, page 45, Triple Barrier Labeling Methodget
 def apply_pt_sl_on_t1(close, events, pt_sl, molecule):  # pragma: no cover
     """
     Advances in Financial Machine Learning, Snippet 3.2, page 45.
@@ -182,7 +182,7 @@ def get_events(close, t_events, pt_sl, target, min_ret, num_threads, vertical_ba
 
 
 # Snippet 3.9, pg 55, Question 3.3
-def barrier_touched(out_df, events):
+def barrier_touched(out_df, events, binary=False):
     """
     Advances in Financial Machine Learning, Snippet 3.9, page 55, Question 3.3.
     Adjust the getBins function (Snippet 3.7) to return a 0 whenever the vertical barrier is the one touched first.
@@ -206,10 +206,19 @@ def barrier_touched(out_df, events):
             store.append(1)
         elif ret < 0.0 and sl_level_reached:
             # Bottom barrier reached
-            store.append(-1)
+            if binary == True:
+                store.append(0)
+            else:
+                store.append(-1)
         else:
-            # Vertical barrier reached
-            store.append(0)
+            if binary == False:
+                # Vertical barrier reached
+                store.append(0)
+            else:
+                if ret > 0.0:
+                    store.append(1)
+                else:
+                    store.append(0)
 
     # Save to 'bin' column and return
     out_df['bin'] = store
@@ -217,7 +226,7 @@ def barrier_touched(out_df, events):
 
 
 # Snippet 3.4 -> 3.7, page 51, Labeling for Side & Size with Meta Labels
-def get_bins(triple_barrier_events, close):
+def get_bins(triple_barrier_events, close, binary=False):
     """
     Advances in Financial Machine Learning, Snippet 3.7, page 51.
     Labeling for Side & Size with Meta Labels
@@ -254,7 +263,7 @@ def get_bins(triple_barrier_events, close):
         out_df['ret'] = out_df['ret'] * events_['side']  # meta-labeling
 
     # Added code: label 0 when vertical barrier reached
-    out_df = barrier_touched(out_df, triple_barrier_events)
+    out_df = barrier_touched(out_df, triple_barrier_events, binary)
 
     # Meta labeling: label incorrect events with a 0
     if 'side' in events_:
